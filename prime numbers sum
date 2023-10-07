@@ -1,0 +1,57 @@
+import numpy as np
+from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister
+
+def find_the_primes_numbers(number_1, number_2):
+  """
+  Finds the two prime numbers that sum to a given positive integer using a quantum circuit.
+
+  Args:
+    number_1: A positive integer.
+    number_2: A list of prime numbers.
+
+  Returns:
+    A tuple of two prime numbers, or None if no such prime numbers exist.
+  """
+
+  # Create a quantum register to store the positive integer and the list of prime numbers.
+  num_qubits = int(np.ceil(np.log2(max([number_1] + number_2))))
+  qreg = QuantumRegister(num_qubits)
+
+  # Encode the positive integer and the list of prime numbers into the quantum register.
+  for i in range(num_qubits):
+    if i == 0:
+      qc.x(qreg[i]) if number_1 < 0 else None
+    else:
+      qc.x(qreg[i]) if number_2[i - 1] < 0 else None
+
+  # Create the Grover oracle.
+  oracle = QuantumCircuit(num_qubits)
+  oracle.cx(qreg[0], qreg[num_qubits - 1])
+  oracle.inverse()
+
+  # Apply the Grover algorithm.
+  qc.append(oracle)
+  qc.grover(oracle, qreg)
+
+  # Measure the qubits.
+  creg = ClassicalRegister(num_qubits)
+  qc.measure(qreg, creg)
+
+  # Execute the circuit and get the results.
+  backend = get_backend()
+  job = backend.run(qc)
+  result = job.result()
+
+  # Get the measurement results.
+  measurement = result.get_counts()[1]
+
+  # If the sum qubit is in the state 1, then we have found the two prime numbers.
+  if measurement[-1] == 1:
+    # Decode the measurement results to get the two prime numbers.
+    prime_numbers = []
+    for i in range(num_qubits - 1):
+      if measurement[i] == 1:
+        prime_numbers.append(number_2[i])
+    return prime_numbers
+  else:
+    return None
